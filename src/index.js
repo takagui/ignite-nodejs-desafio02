@@ -10,9 +10,9 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  const { username } = request.header;
+  const { username } = request.headers;
 
-  const user = users.some((user) => user.username === username);
+  const user = users.find((user) => user.username === username);
 
   if (!user) {
     return response.status(404).json({ error: 'User does not exist' });
@@ -34,7 +34,28 @@ function checksCreateTodosUserAvailability(request, response, next) {
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find((user) => user.username === username);
+
+  if (!user) {
+    return response.status(404).json({ error: 'User does not exist' });
+  }
+
+  if (!validate(id)) {
+    return response.status(400).json({ error: 'Invalid ID' });
+  }
+
+  const todo = user.todos.find((todo) => todo.id === id);
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo not found' });
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
